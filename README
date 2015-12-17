@@ -1,0 +1,45 @@
+This package is a modification of the SPH package which implements smoothed particle hydrodynamics (SPH) in
+LAMMPS.  Currently, the SPH package has the following features:
+
+* Tait, ideal gas, Lennard-Jones equation of states, full support for 
+  complete (i.e. internal-energy dependent) equations of state
+* plain or Monaghans XSPH integration of the equations of motion
+* density continuity or density summation to propagate the density field
+* commands to set internal energy and density of particles from the 
+  input script
+* output commands to access internal energy and density for dumping and 
+  thermo output
+
+The additions to the SPH package by John Savage and Shule Liu are:
+
+* Added atom quantities prtn_conc (proton concentration) and elec_pot (electrostatic potential) plus dprtn_conc 
+  This required a change to the atom.cpp and verlet.cpp files also unfortunately and to the form of the .data file.
+  Fix_meso has been changed to reflect this, howver fix_meso_stationary hasn't, don't use it.
+* Added a pair style, pair_sph_protondiffusion which is based heavily on the pair_sph_heatconduction style. 
+  - This style depends on the electrostatic fix to compute the electrostatic potential before the pair computation,
+    if one wants the proper physics, but can run without it fine.
+  - It uses Ryan's method to propagate proton concentration between water beads.
+* Added a compute, compute_meso_prtn_conc_atom, again heavily based on compute_meso_e.
+* Added a fix, fix_electrostatic, which computes the electrostatic potential, using a simple scaled coulomb for now.
+  I tried implementing Wolf potential but removed it for easier debugging.
+  This fix occurs in the PRE_FORCE section of the timestep so adds a second loop over beads.
+** THIS WAS AS FAR AS I WAS AT GROUP MEETING **
+* Added a pair style pair_sph_nafion, which is for movement of the beads. This is necessary since the equation of state will be more
+  complicated that lennard jones or ideal gas, which is all that is in the package currently. This pair style implements the random 
+  movement of the Smoothed DPD methodology.
+* As it stands, the velocity verlet algorithm is crap for energy and density conservation, so their propagation is turned off.
+  We really need to get a better integrating scheme in place. However, as is stands, the simulations run fine with them turned off
+  so it's useful for testing.
+
+* Data file is similar to SPH module, except I added prtn_conc column, so it goes like
+  atom number, molecule, type, rho, e, cv, prtn_conc, x, y, z
+  (Note, as the code is now (Aug '13) e/cv = temperature of simulation, so set cv to be that of water and set e accordingly for desired T)
+
+See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.
+
+There are example scripts for using this package in examples/USER/sph.
+
+The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.
